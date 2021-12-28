@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd">
+<suite name="Source Fuse Test Suite">
+	<listeners>
+		<listener class-name="com.automation.util.ExtentReporterNG" />
+	</listeners>
+	<test name="SourceFuse Test Cases" parallel="false">
+		<parameter name="execution-type" value="headless" />
+		<classes>
+			<class name="com.reddit.tests.RedditTest"></class>
+		</classes>
+	</test>
+</suite>
