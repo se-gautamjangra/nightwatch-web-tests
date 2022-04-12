@@ -16,10 +16,9 @@ public class RedditTest extends TestBase {
         super();
     }
 
-    @Parameters({ "execution-type" })
+//    @Parameters({ "execution-type" })
     @BeforeClass
-    public void setUp(@Optional("non-headless") String value) {
-        initialization(value);
+    public void setUp() {
         loginPage = new LoginPage();
         postPage = new PostPage();
         subredditsPage = new SubredditsPage();

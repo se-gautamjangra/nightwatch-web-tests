@@ -1,5 +1,6 @@
 package com.automation.base;
 
+import com.automation.util.PropertyReader;
 import com.automation.util.TestUtil;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
@@ -35,44 +36,18 @@ public class TestBase {
     public static Statement statement = null;
     protected static final Logger logger = LogManager.getLogger(TestBase.class);
 
-    public TestBase() {
-        try {
-            prop = new Properties();
-            FileInputStream ip = new FileInputStream(
-                    System.getProperty("user.dir") + "/src/main/java/com/automation"
-                            + "/config/config.properties");
-            prop.load(ip);
-            PropertyConfigurator.configure("log4j.properties");
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    public static void initialization(String executionType) {
-        ChromeOptions options = new ChromeOptions();
-        if (executionType.equalsIgnoreCase("HEADLESS")) {
-            options.addArguments("--headless"); //for headless mode
-            options.addArguments("--window-size=800,600");//The invisible browser window is only 800x600 in size
-            options.addArguments("start-maximized"); // open Browser in maximized mode
-            options.addArguments("disable-infobars"); // disabling infobars
-            options.addArguments("--disable-extensions"); // disabling extensions
-            options.addArguments("--disable-gpu"); // applicable to windows os only
-            options.addArguments("--disable-dev-shm-usage"); // overcome limited resource problems
-            options.addArguments("--no-sandbox");
-        }
-        options.addArguments("--disable-notifications");
-        System.setProperty("webdriver.chrome.driver",
-                System.getProperty("user.dir")
-                        + "/src/main/resources/chromedriver.exe");
-        driver = new ChromeDriver(options);
+    public static void initialization() {
+        BrowserFactory browserFactory = new BrowserFactory();
+        String browserName = PropertyReader.getPropertyValue("browser");
+        PropertyConfigurator.configure("log4j.properties");
+        DriverFactory.getInstance().setDrivers(browserFactory.getDriverInstance(browserName));
+        WebDriver driver = DriverFactory.getInstance().getDriver();
         driver.manage().window().maximize();
         driver.manage().timeouts()
                 .pageLoadTimeout(TestUtil.PAGE_LOAD_TIMEOUT, TimeUnit.SECONDS);
         driver.manage().timeouts()
                 .implicitlyWait(TestUtil.IMPLICIT_WAIT, TimeUnit.SECONDS);
-        driver.get(prop.getProperty("url"));
+        driver.get(PropertyReader.getPropertyValue("url"));
         ExpectedCondition<Boolean> pageLoadCondition = new ExpectedCondition<Boolean>() {
             public Boolean apply(WebDriver driver) {
                 return ((JavascriptExecutor) driver).executeScript(
@@ -85,14 +60,14 @@ public class TestBase {
     }
 
     public void closeDriver() {
-        driver.quit();
+        DriverFactory.getInstance().closeDriver();
     }
 
     public static void databaseConnectionSetup() {
         try {
             String dbClass = "com.mysql.cj.jdbc.Driver";
             Class.forName(dbClass).newInstance();
-            connection = DriverManager.getConnection(prop.getProperty("DB_URL"), prop.getProperty("DB_USER"), prop.getProperty("DB_PASSWORD"));
+            connection = DriverManager.getConnection(PropertyReader.getPropertyValue("DB_URL"), PropertyReader.getPropertyValue("DB_USER"), PropertyReader.getPropertyValue("DB_PASSWORD"));
             statement = connection.createStatement();
         } catch (Exception e) {
             e.printStackTrace();
@@ -181,6 +156,7 @@ public class TestBase {
     @BeforeSuite
     public void tearUp() {
         logger.info("*********************** Test Execution Started ***********************");
+        initialization();
     }
 
     @AfterSuite
